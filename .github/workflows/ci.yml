@@ -28,7 +28,6 @@ jobs:
     - name: Generate Vars
       id: generate_vars
       run: |
-        IMAGE_TAG=pr-${{ github.event.push.number }}-$(echo ${{ github.event.push.head.sha }} | cut -c1-8)
         IMAGE_NAME=${{ github.repository }}
         #Image ID= Name + Tag
         IMAGE_ID=$IMAGE_NAME:$IMAGE_TAG
@@ -41,7 +40,6 @@ jobs:
       uses: mr-smithers-excellent/docker-build-push@v6.2
       with:
         image: python-auth-app/pyapp
-        tags: ${{ steps.generate_vars.outputs.image }}
         registry: docker.io
         dockerfile: ./Dockerfile
         username: ${{ secrets.DOCKER_USERNAME }}
