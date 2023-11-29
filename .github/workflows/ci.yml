@@ -1,0 +1,49 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+
+name: Python application
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.10"
+    
+    
+    - name: Generate Vars
+      id: generate_vars
+      run: |
+        IMAGE_TAG=pr-${{ github.event.pull_request.number }}-$(echo ${{ github.event.pull_request.head.sha }} | cut -c1-8)
+        IMAGE_NAME=${{ github.repository }}
+        #Image ID= Name + Tag
+        IMAGE_ID=$IMAGE_NAME:$IMAGE_TAG
+        IMAGE_REPO=$REGISTRY/$IMAGE_ID
+        echo "Image: $IMAGE_REPO"
+        echo "image=$IMAGE_REPO" >>$GITHUB_OUTPUT
+        echo "image_name=$IMAGE_NAME" >>$GITHUB_OUTPUT
+    
+    - name: Docker Build & Push Action
+      uses: mr-smithers-excellent/docker-build-push@v6.2
+      with:
+        image: python-auth-app/pyapp
+        tags: ${{ steps.generate_vars.outputs.image }}
+        registry: https://www.docker.com.io
+        dockerfile: ./Dockerfile
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+            
